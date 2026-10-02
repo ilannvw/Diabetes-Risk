@@ -1,6 +1,6 @@
 # Diabetes Risk Analysis
 
-An R programme that analyses patient health data to compare how strongly lifestyle factors versus fixed biological factors predict diabetes risk.
+An R and Python programme that analyses patient health data to compare how strongly lifestyle factors versus fixed biological factors predict diabetes risk.
 
 ---
 
@@ -18,7 +18,7 @@ We compare lifestyle factors (exercise, diet, sleep, smoking, alcohol consumptio
 
 1. **How strongly does each lifestyle and biological factor correlate with the diabetes risk score, individually?**
 
-  We compute the Pearson correlation coefficient $r$ between each variable and `Diabetes_Risk_Score`, (add how to quantify uncertainty?)
+  We compute the Pearson correlation coefficient $r$ between each variable and `Diabetes_Risk_Score`, by using the raw correlation values instead of the uncertainty estimate as it is a large sample size (~50,000 patients).
 
 2. **Do lifestyle factors, as a group, predict risk as strongly as biological factors, as a group as well?**
 
@@ -45,6 +45,7 @@ The dataset is a synthetic patient health record file in CSV format, containing 
 ### Prerequisites
 
 * R (version 4.6.1 or later)
+* Python 3.x with the `pandas` and `matplotlib` packages
 * A terminal on macOS, Linux, or Windows
 
 ### Cloning the Repository
@@ -55,24 +56,39 @@ git clone https://github.com/ilannvw/Diabetes-Risk
 
 ### Install Dependencies
 
-Install ...
+Install the required Python packages
 ```bash
-install.packages(c("..."))
-```
+python3 -m pip install pandas matplotlib
+````
 
 Place the dataset in the folder called `data`
 ```bash
 mkdir -p data
 ```
 
-### Run Main
+### Run the Analysis
+
+1. run the R script to clean the data, compute the correlations and export the results
 
 ```bash
-Rscript "Main.r"
+Rscript "main.r"
+```
+
+2. run the Python script to generate the plots from the exported results
+
+```bash
+python3 plots.py
 ```
 
 ---
+## Output
+
+- `correlation_results.csv`: correlation table (intermediate output)
+- `plot_data.csv`: columns used for the 2nd and 3rd plots (intermediate output)
+- `correlation_comparison.png`: main result, bar chart comparing the lifestyle vs. biological correlation strengths with diabetes risk
+- `risk_score_distribution.png`: distribution of the diabetes risk score itself
+- `risk_by_family_history.png`: boxplot of risk score split by family history of diabetes
 
 **Course:** Introduction to Programming (MAT2007) | Maastricht University
 **Author:** Ilan Noè
-**Date:** September, 2026
+**Date:** October, 2026
