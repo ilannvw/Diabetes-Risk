@@ -2,49 +2,42 @@
 
 # loads and cleans the diabetes risk dataset, then categorises
 # lifestyle / biological variables, computes the correlations
-# against Diabetes_Risk_Score variable, and exports these results
-# to a .csv file to be able to plot in Python.
+# against Diabetes_Risk_Score variable, tests each one with a
+# t-test, and exports these results to .csv files to be able
+# to plot in Python.
 
 # load the dataset
-# read.csv() loads the file into a .csv file called 'data'
+# read.csv() loads the file into a folder called 'data'
 data <- read.csv("data/diabetes_risk_prediction_dataset.csv")
 
 # this line is a structural check, to confirm the column names, types,
 # and shows the first few values of each column
 str(data)
 
-# this line counts the number of missing values per column (NA)
-# this is done to make sure that there are enough values to make
-# the result meaningful.
-# in this case, the average amount of NAs present is around 4%, meaning
-# any existing NAs are not counted as the amount is low.
+# this line counts the number of missing values in each column (NA)
+# the amount of NAs present within the variables that we use is at most 4%,
+# and Diabetes_Risk_Score has none, so no rows are removed.
+# missing values are skipped within each correlation
 colSums(is.na(data))
 
 # converts the categories (e.g. poor, average, healthy) into numbers (1, 2, 3)
 # so they can be used for further analysis.
-data$Diet_Quality_num <- as.numeric(factor(data$Diet_Quality,
-                                           levels = c("Poor",
-                                                      "Average",
-                                                      "Healthy"),
-                                           ordered = TRUE))
+data$Diet_Quality_num <-
+  as.numeric(factor(data$Diet_Quality, levels =
+                      c("Poor", "Average", "Healthy"), ordered = TRUE))
 
-data$Smoking_Status_num <- as.numeric(factor(data$Smoking_Status,
-                                             levels = c("Never",
-                                                        "Former",
-                                                        "Current"),
-                                             ordered = TRUE))
+data$Smoking_Status_num <-
+  as.numeric(factor(data$Smoking_Status, levels =
+                      c("Never", "Former", "Current"), ordered = TRUE))
 
-data$Alcohol_Consumption_num <- as.numeric(factor(data$Alcohol_Consumption,
-                                                  levels = c("Never",
-                                                             "Occasionally",
-                                                             "Frequently"),
-                                                  ordered = TRUE))
+data$Alcohol_Consumption_num <-
+  as.numeric(factor(data$Alcohol_Consumption, levels =
+                      c("Never", "Occasionally", "Frequently"), ordered = TRUE))
 
 # because Family_History_Diabetes is a simple Yes / No
 # so it's converted to either 1 / 0
-data$Family_History_Diabetes_num <- as.integer(data$
-                                                 Family_History_Diabetes ==
-                                                 "Yes")
+data$Family_History_Diabetes_num <-
+  as.integer(data$Family_History_Diabetes == "Yes")
 
 # defining the two variable groups that are compared
 # 1st research question: do modifiable lifestyle factors predict
@@ -69,7 +62,7 @@ biological_variables <- c(
 # one, it computes its correlation with the Diabetes_Risk_Score.
 
 # the line 'use = "pairwise.complete.obs"' is for each correlation, only
-# drops rows where that variable missing, instead of removing a row
+# drops rows where that variable is missing, instead of removing a row
 # just because another column had an NA.
 compute_correlations <- function(vars, data, target = "Diabetes_Risk_Score") {
   sapply(vars, function(v) {
@@ -95,10 +88,21 @@ results <- data.frame(
 results <- results[order(-abs(results$Correlation)), ]
 print(results)
 
+# t-test for each variable: is its correlation with the risk score
+# significantly different from zero? (H0: no correlation)
+# cor.test() skips any patient with a missing value in either of the two
+# variables being compared
+test_results <- t(sapply(c(lifestyle_variables, biological_variables),
+                         function(v) {
+                           ct <- cor.test(data[[v]], data$Diabetes_Risk_Score)
+                           c(t = unname(ct$statistic),
+                             df = unname(ct$parameter), p = ct$p.value)
+                         }))
+print(signif(test_results, 3))
+
 # group level comparison
 # 2nd research question: does one group, on average, correlate more
 # strongly with diabetes risk than the other?
-
 mean_abs_lifestyle  <- mean(abs(lifestyle_corr))
 mean_abs_biological <- mean(abs(biological_corr))
 
@@ -117,5 +121,4 @@ write.csv(results, "correlation_results.csv", row.names = FALSE)
 plot_data <- data[, c("Diabetes_Risk_Score", "Family_History_Diabetes")]
 write.csv(plot_data, "plot_data.csv", row.names = FALSE)
 
-cat("\nfiles exported correlation_results.csv and plot_data.csv 
-    ready for Python plotting.\n")
+cat("\nfiles exported: correlation_results.csv and plot_data.csv\n")
