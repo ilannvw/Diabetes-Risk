@@ -98,7 +98,9 @@ test_results <- t(sapply(c(lifestyle_variables, biological_variables),
                            c(t = unname(ct$statistic),
                              df = unname(ct$parameter), p = ct$p.value)
                          }))
-print(signif(test_results, 3))
+shown <- test_results
+shown[, c("t", "p")] <- signif(shown[, c("t", "p")], 3)
+print(shown)
 
 # group level comparison
 # 2nd research question: does one group, on average, correlate more
